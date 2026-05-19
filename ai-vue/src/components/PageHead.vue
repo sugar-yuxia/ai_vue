@@ -18,6 +18,7 @@ const props = defineProps({
 
 <style lang="scss" scoped>
 .page-head{
+    margin-bottom: 20px;
     display: flex;
     justify-content: space-between; /* 左右分开 */
     align-items: center;

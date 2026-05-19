@@ -1,7 +1,7 @@
 <template> 
 <div class="navbar">
     <div class="flex-box">
-        <el-button>
+        <el-button @click="handleCollapse">
             <el-icon><Expand/></el-icon>
         </el-button>
         <p class="page-title">导航栏</p>
@@ -25,6 +25,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useAdminStore } from '@/stores/admin'
+
+const handleCollapse = () => {
+    useAdminStore().toggleCollapse()
+}
 
 const handleCommand = (command) => {
     console.log(command)
