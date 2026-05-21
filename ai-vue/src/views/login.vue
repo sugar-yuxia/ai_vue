@@ -35,6 +35,7 @@
 
 <script setup>
 import {ref,reactive} from 'vue'
+import { login } from '@/api/admin'
 
 const ruleFormRef = ref()
 
@@ -57,7 +58,15 @@ const submitForm = async (formEl) => {
     if(!formEl) return
     await formEl.validate((valid, fields) => {
         if(valid){
-            console.log(fields)
+            login(formData).then(data => {
+                // 判断token是否存在
+                if(!data.token){
+                    return console.error('登录失败')
+                }
+                // 登陆成功，保存token和用户信息
+                localStorage.setItem('token',data.token)
+                localStorage.setItem('userInfo',JSON.stringify(data.userInfo))
+            })
         }
     })
 }
