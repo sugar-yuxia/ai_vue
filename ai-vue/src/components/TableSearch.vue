@@ -10,7 +10,8 @@
                                 <el-option 
                                     v-for="opt in item.options"
                                     :key="opt.value"
-                                    :label="opt.label" :value="opt.value">
+                                    :label="opt.label" 
+                                    :value="opt.value">
                                 </el-option>    
                             </template>
                         </component>
