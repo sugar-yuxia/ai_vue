@@ -35,6 +35,13 @@
                 </template>
             </el-table-column>
         </el-table>
+        <el-pagination
+            style="margin-top: 25px;"
+            :page-size="pagination.size"
+            :total="pagination.total"
+            layout="prev, pager, next"
+            @change="handleChange"
+        />
     </div>
 </template>
 
@@ -78,7 +85,16 @@ const handleSearch = async(formData) => {
     console.log(data,'列表数据')
     const {records,total} = await articlePage(params)
     tableData.value = records
+    pagination.total = total
 }
+
+// 分页切换
+const handleChange = (page) => {
+    pagination.currentPage = page
+    handleSearch()
+}
+
+
 
 // 分类映射
 const categoryMap = reactive({})

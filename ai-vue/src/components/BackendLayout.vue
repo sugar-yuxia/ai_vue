@@ -28,7 +28,6 @@ import Navbar from './Navbar.vue';
         .content-container{
             padding: 20px;
             background-color: #fff;
-            height: calc(100% - 74px);
         }
     }
 }
