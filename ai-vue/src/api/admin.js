@@ -8,6 +8,6 @@ export function categoryTree(){
     return service.get('/knowledge/category/tree')
 }
 
-export function articlePagee(params){
+export function articlePage(params){
     return service.get('/knowledge/article/page',{params})
 }
