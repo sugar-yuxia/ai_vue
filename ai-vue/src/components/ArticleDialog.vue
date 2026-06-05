@@ -29,6 +29,7 @@
                     action="#"
                     :before-upload="beforeUpload"
                     :http-request="handleUploadRequest"
+                    :show-file-list="false"
                     accept="image/#"
                 >
                     <div v-if="!imgUrl" class="cover-placeholder">
@@ -36,6 +37,9 @@
                     </div>
                     <img v-else :src="imgUrl" class="cover-image" alt="封面图片">
                     </el-upload>
+                    <div v-if="imgUrl" class="cover-remove">
+                        <el-button type="danger" size="mini" @click="handleRemove">删除封面</el-button>
+                    </div>
             </div>
         </el-form-item>
     </el-form>
@@ -45,6 +49,8 @@
 <script setup>
 import { ref, reactive, computed} from 'vue'
 import { ElMessage } from 'element-plus'
+import { uploadFile } from '@/api/admin'
+import { fileBaseUrl } from '@/config'
 
 const props = defineProps({
     modelValue: {
@@ -118,7 +124,23 @@ const beforeUpload = (file) => {
     return true
 }
 
-const handleUploadRequest = () => { 
+const handleUploadRequest = async({ file }) => { 
+    // UUID生成
+    const businessId = crypto.randomUUID()
+
+    const fileRes = await uploadFile(file,{
+        businessId: businessId,
+    })
+    console.log(fileRes)
+
+    // 拼接完整图片地址
+    imgUrl.value = fileBaseUrl + fileRes.filePath
+    formData.coverImage = fileRes.filePath
+}
+
+const handleRemove = () => { 
+    imgUrl.value = ''
+    formData.coverImage = ''
 }
 
 const handleClose = () => {}
@@ -134,5 +156,10 @@ const handleClose = () => {}
     justify-content: center;
     color: #8b949c;
     background-color: #f6f8fa;
+}
+.cover-image{
+    width: 200px;
+    height: 120px;
+    display: block;
 }
 </style>

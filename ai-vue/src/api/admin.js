@@ -8,6 +8,22 @@ export function categoryTree(){
     return service.get('/knowledge/category/tree')
 }
 
+// 文章分页查询
 export function articlePage(params){
     return service.get('/knowledge/article/page',{params})
+}
+
+// 上传文件
+export function uploadFile(file,businessInfo){
+    const formData = new FormData()
+    formData.append('file',file)
+    formData.append('businessType','ARTICLE')
+    formData.append('businessId',businessInfo.businessId)
+    formData.append('businessField','cover')
+
+    return service.post('file/upload',formData,{
+        headers:{
+            'Content-Type':'multipart/form-data'
+        }   
+    })
 }
