@@ -25,7 +25,7 @@
             </el-table-column>
             <el-table-column prop="authorName" label="作者" width="150"/>
             <el-table-column prop="readCount" label="阅读量" width="150"/>
-            <el-table-column prop="publishedAt" label="发布时间" width="150"/>
+            <el-table-column prop="updatedAt" label="发布时间" width="150"/>
             <el-table-column label="操作" width="240" fixed="right">
                 <template #default="scope">
                     <el-button text type="primary">编辑</el-button>
@@ -42,7 +42,7 @@
             layout="prev, pager, next"
             @change="handleChange"
         />
-        <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories"/>
+        <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories" @success="handleSuccess"/>
     </div>
 </template>
 
@@ -108,6 +108,9 @@ const tableData = ref([])
 
 // 新增和编辑
 const dialogVisible = ref(false)
+
+// 新增和编辑成功后刷新列表
+const handleSuccess = () => {}
 
 onMounted(async() => {
     const data = await categoryTree()

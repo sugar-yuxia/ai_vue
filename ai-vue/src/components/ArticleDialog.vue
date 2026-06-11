@@ -5,62 +5,72 @@
         width="50%"
         @close="handleClose"
     >
-    <el-form :model="formData" :rules="rules" ref="articleForm" label-width="120px">
-        <el-form-item label="文章标题" prop="title">
-            <el-input v-model="formData.title" placeholder="请输入文章标题" maxlength="50" show-word-limit clearable></el-input>
-        </el-form-item>
-        <el-form-item label="所属分类" prop="categoryId">
-            <el-select v-model="formData.categoryId" placeholder="请选择分类" clearable>
-                <el-option v-for="item in props.categories" :key="item.value" :label="item.label" :value="item.value"></el-option>
-            </el-select>
-        </el-form-item>
-        <el-form-item label="文章摘要" prop="summary">
-            <el-input type="textarea" v-model="formData.summary" placeholder="请输入文章摘要（可选）" maxlength="1000" show-word-limit clearable :rows="4"></el-input>
-        </el-form-item>
-        <el-form-item label="标签" prop="tags">
-            <el-select v-model="formData.tagsArray" placeholder="请输入文章标签（可选）" multiple filterable allow-create style="width: 100%;">
-                <el-option v-for="tag in commonTags" :key="tag" :label="tag" :value="tag"></el-option>
-            </el-select>
-        </el-form-item>
-        <el-form-item label="封面图片">
-            <div class="cover-uploader">
-                <el-upload
-                    class="upload-demo"
-                    action="#"
-                    :before-upload="beforeUpload"
-                    :http-request="handleUploadRequest"
-                    :show-file-list="false"
-                    accept="image/#"
-                >
-                    <div v-if="!imgUrl" class="cover-placeholder">
-                        <p>点击上传封面</p>
-                    </div>
-                    <img v-else :src="imgUrl" class="cover-image" alt="封面图片">
-                    </el-upload>
-                    <div v-if="imgUrl" class="cover-remove">
-                        <el-button type="danger" size="mini" @click="handleRemove">删除封面</el-button>
-                    </div>
+        <el-form :model="formData" :rules="rules" ref="formref" label-width="120px">
+            <el-form-item label="文章标题" prop="title">
+                <el-input v-model="formData.title" placeholder="请输入文章标题" maxlength="50" show-word-limit clearable></el-input>
+            </el-form-item>
+            <el-form-item label="所属分类" prop="categoryId">
+                <el-select v-model="formData.categoryId" placeholder="请选择分类" clearable>
+                    <el-option v-for="item in props.categories" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="文章摘要" prop="summary">
+                <el-input type="textarea" v-model="formData.summary" placeholder="请输入文章摘要（可选）" maxlength="1000" show-word-limit clearable :rows="4"></el-input>
+            </el-form-item>
+            <el-form-item label="标签" prop="tags">
+                <el-select v-model="formData.tagsArray" placeholder="请输入文章标签（可选）" multiple filterable allow-create style="width: 100%;">
+                    <el-option v-for="tag in commonTags" :key="tag" :label="tag" :value="tag"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="封面图片">
+                <div class="cover-uploader">
+                    <el-upload
+                        class="upload-demo"
+                        action="#"
+                        :before-upload="beforeUpload"
+                        :http-request="handleUploadRequest"
+                        :show-file-list="false"
+                        accept="image/#"
+                    >
+                        <div v-if="!imgUrl" class="cover-placeholder">
+                            <p>点击上传封面</p>
+                        </div>
+                        <img v-else :src="imgUrl" class="cover-image" alt="封面图片">
+                        </el-upload>
+                        <div v-if="imgUrl" class="cover-remove">
+                            <el-button type="danger" size="mini" @click="handleRemove">删除封面</el-button>
+                        </div>
+                </div>
+            </el-form-item>
+            <el-form-item label="文章内容" prop="content">
+                <RichTextEditor 
+                    v-model="formData.content" 
+                    placeholder="请输入文章内容" 
+                    :maxCharCount="5000"
+                    @change="handleContentChange"
+                    @created="handleEditorCreated"
+                    min-height="400px"
+    > 
+                </RichTextEditor>
+            </el-form-item>
+        </el-form>
+        <div v-if="btnpreview">
+            <h3>内容预览</h3>
+            <div v-html = "formData.content">
             </div>
-        </el-form-item>
-        <el-form-item label="文章内容" prop="content">
-            <RichTextEditor 
-                v-model="formData.content" 
-                placeholder="请输入文章内容" 
-                :maxCharCount="5000"
-                @change="handleContentChange"
-                @created="handleEditorCreated"
-                min-height="400px"
->
-            </RichTextEditor>
-        </el-form-item>
-    </el-form>
+        </div>
+        <template #footer>
+            <el-button  @click="btnpreview = !btnpreview">{{ btnpreview ? '隐藏预览' : '预览效果' }}</el-button>
+            <el-button  @click="handleClose">取消</el-button>
+            <el-button  type="primary" @click="handleSubmit" :loading="loading">创建文章</el-button>
+        </template>
     </el-dialog>
 </template>
 
 <script setup>
-import { ref, reactive, computed} from 'vue'
+import { ref, reactive, computed,nextTick} from 'vue'
 import { ElMessage } from 'element-plus'
-import { uploadFile } from '@/api/admin'
+import { uploadFile,createArticle } from '@/api/admin'
 import { fileBaseUrl } from '@/config'
 import RichTextEditor from '@/components/RichTextEditor.vue'
 
@@ -75,7 +85,7 @@ const props = defineProps({
     }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue','success'])
 
 const dialogVisible = computed({
     get() {
@@ -99,15 +109,16 @@ const formData = reactive({
 
 
 const rules = reactive({
-    "title": [
+    title: [
         { required: true, message: '请输入文章标题', trigger: 'blur' },
         { max: 50, message: '文章标题最多50个字符', trigger: 'blur' }
     ], 
-    "categoryId": [
+    categoryId: [
         { required: true, message: '请选择分类', trigger: 'change' }
     ],
-    "summary": [
-        { max: 1000, message: '文章摘要最多1000个字符', trigger: 'blur' }
+    content: [
+        { required: true, message: '请输入文章内容', trigger: 'blur' },
+        { max: 5000, message: '文章内容最多5000个字符', trigger: 'blur' }
     ]
 })
 
@@ -156,9 +167,45 @@ const handleRemove = () => {
 }
 
 // 富文本
-const handleContentChange = () => {}
+const handleContentChange = (data) => {
+    console.log(data,'富文本内容')
+    formData.content = data.html
+}
 
-const handleEditorCreated = () => {}
+const editorInstance = ref(null)
+const handleEditorCreated = (editor) => {
+    editorInstance.value = editor
+    // 编辑
+    if(formData.content && editor){
+        nextTick(() => {
+            editor.setHtml(formData.content)
+        })  
+    }
+}
+
+const btnpreview = ref(false)
+
+// 提交
+const formref = ref()
+const loading = ref(false)
+const handleSubmit = () => {
+    formref.value.validate((valid, fields) => {
+        if(valid){
+            loading.value = true
+        }
+        console.log(formData,'提交数据')
+        const submitData = {
+            ...formData,
+            tags: formData.tagsArray.join(',')
+        }
+        delete submitData.tagArray
+
+        createArticle(submitData).then(res => {
+            loading.value = false
+            emit('success')
+        })
+    })
+}
 
 const handleClose = () => {}
 </script>
