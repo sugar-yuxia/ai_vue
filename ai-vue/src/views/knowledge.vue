@@ -109,7 +109,11 @@ const tableData = ref([])
 // 新增和编辑
 const dialogVisible = ref(false)
 const currentArticle = ref(null)
-const handleSuccess = () => {}
+const handleSuccess = () => {
+    dialogVisible.value = false
+    // 刷新列表
+    handleSearch()
+}
 const handleEdit = (row) => { 
     console.log(row,'编辑数据')
     if(!row.id){

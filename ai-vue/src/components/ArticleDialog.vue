@@ -70,7 +70,7 @@
 <script setup>
 import { ref, reactive, computed,nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { uploadFile,createArticle } from '@/api/admin'
+import { uploadFile,createArticle, updateArticle } from '@/api/admin'
 import { fileBaseUrl } from '@/config'
 import RichTextEditor from '@/components/RichTextEditor.vue'
 
@@ -121,7 +121,7 @@ const handleClose = () => {
     // 重置ID
     businessId.value = null
     // 重置标签数组
-    formData.tagsArray = []
+    formData.tagArray = []
     // 重置封面图片和数据
     handleRemove()
     emit('update:modelValue',false)
@@ -228,14 +228,23 @@ const handleSubmit = () => {
         console.log(formData,'提交数据')
         const submitData = {
             ...formData,
-            tags: formData.tagsArray.join(',')
+            tags: formData.tagArray.join(',')
         }
         delete submitData.tagArray
 
-        createArticle(submitData).then(res => {
-            loading.value = false
-            emit('success')
-        })
+        if(!isEdit.value){
+            submitData.id = businessId.value
+            createArticle(submitData).then(res => {
+                loading.value = false
+                emit('success')
+            })
+        }else{
+            updateArticle(props.article.id,submitData).then(res => { 
+                loading.value = false
+                emit('success')
+            })
+        }
+        
     })
 }
 </script>
