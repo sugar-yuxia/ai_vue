@@ -1,6 +1,6 @@
 <template> 
     <el-dialog
-        title="文章详情"
+        :title="isEdit ? '编辑文章' : '文章详情'"
         v-model="dialogVisible"
         width="50%"
         @close="handleClose"
@@ -62,13 +62,13 @@
         <template #footer>
             <el-button  @click="btnpreview = !btnpreview">{{ btnpreview ? '隐藏预览' : '预览效果' }}</el-button>
             <el-button  @click="handleClose">取消</el-button>
-            <el-button  type="primary" @click="handleSubmit" :loading="loading">创建文章</el-button>
+            <el-button  type="primary" @click="handleSubmit" :loading="loading">{{ isEdit ? '更新文章' : '创建文章' }}</el-button>
         </template>
     </el-dialog>
 </template>
 
 <script setup>
-import { ref, reactive, computed,nextTick} from 'vue'
+import { ref, reactive, computed,nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { uploadFile,createArticle } from '@/api/admin'
 import { fileBaseUrl } from '@/config'
@@ -82,6 +82,10 @@ const props = defineProps({
     categories: {
         type: Array,
         default: () => []
+    },
+    article: {
+        type: Object,
+        default: null
     }
 })
 
@@ -95,6 +99,33 @@ const dialogVisible = computed({
         emit('update:modelValue',val)
     }
 })
+
+const isEdit = computed(() => !!props.article?.id)
+
+// 监听编辑数据
+watch(() => props.article,(newVal) => {
+    if(newVal){
+        nextTick(() => { 
+            Object.assign(formData,newVal)
+            //使用现有ID 
+            businessId.value = newVal.id
+            // 封面Url
+            imgUrl.value = fileBaseUrl + newVal.coverImage
+        })
+    }
+})
+
+const handleClose = () => {
+    // 重置表单
+    formref.value.resetFields()
+    // 重置ID
+    businessId.value = null
+    // 重置标签数组
+    formData.tagsArray = []
+    // 重置封面图片和数据
+    handleRemove()
+    emit('update:modelValue',false)
+}
 
 // 表单数据
 const formData = reactive({
@@ -147,12 +178,13 @@ const beforeUpload = (file) => {
     return true
 }
 
+const businessId = ref(null)
 const handleUploadRequest = async({ file }) => { 
     // UUID生成
-    const businessId = crypto.randomUUID()
+    businessId.value = crypto.randomUUID()
 
     const fileRes = await uploadFile(file,{
-        businessId: businessId,
+        businessId: businessId.value,
     })
     console.log(fileRes)
 
@@ -206,8 +238,6 @@ const handleSubmit = () => {
         })
     })
 }
-
-const handleClose = () => {}
 </script>
 
 <style scoped lang="scss">
