@@ -51,3 +51,7 @@ export function deleteArticle(id){
 export function getConsulationPage(params){
     return service.get('/psychological-chat/sessions',{params})
 }
+
+export function getSessionDetail(sessionId){
+    return service.get(`/psychological-chat/sessions/${sessionId}/messages`)
+}
